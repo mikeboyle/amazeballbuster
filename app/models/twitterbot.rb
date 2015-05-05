@@ -28,7 +28,10 @@ class Twitterbot
   end
 
   def find_tweets
-    client.search("#{@search_term} -rt", lang: "en", result_type: "recent")
+    client.search("#{@search_term} -rt", 
+      lang: "en", 
+      result_type: "recent",
+      since_id: since_id)
     .take(100)
     .each do |tweet|
       h = tweet.to_hash
@@ -45,6 +48,10 @@ class Twitterbot
     end
   end
 
+  def since_id
+    Tweet.all.order(tweet_id: :desc).first.tweet_id.to_i
+  end
+
   def tweet_valid?(tweet)
     search_term_in_text?(tweet) &&
       !( five_sos_mentioned?(tweet) ) &&
@@ -53,7 +60,7 @@ class Twitterbot
 
   def search_term_in_text?(tweet)
     # because some results only have term in username
-    tweet.text.include? @search_term
+    return true if tweet.text.match(/\b#{@search_term}\b/i)
   end
 
   def five_sos_mentioned?(tweet)
@@ -64,7 +71,7 @@ class Twitterbot
 
   def retweet_tweet(tweet)
     begin
-      client.retweet!(tweet.id)
+      client.retweet!(tweet.tweet_id)
       puts tweet.text
     rescue => exception
       puts "Oops, something went wrong!"
