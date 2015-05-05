@@ -28,3 +28,7 @@ end
 every 3.hours do
   rake "amazeballbuster:clean_up_db"
 end
+
+every 15.minutes do
+  rake "amazeballbuster:manage_followers"
+end
