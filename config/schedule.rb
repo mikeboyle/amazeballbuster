@@ -21,7 +21,7 @@
 
 set :environment, 'development'
 
-every 10.minutes do
+every 5.minutes do
   rake "amazeballbuster:bust"
 end
 

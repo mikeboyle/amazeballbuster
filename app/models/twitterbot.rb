@@ -19,7 +19,7 @@ class Twitterbot
     find_tweets
 
     if @search_results.any?
-      @search_results.each {|t| retweet_tweet(t)}
+      @search_results.reverse.each {|t| retweet_tweet(t)}
     else
       puts "no tweets found"
       return false
@@ -44,7 +44,13 @@ class Twitterbot
       screen_name: h[:user][:screen_name],
       mentioned_ids: h[:entities][:user_mentions].each {|u| mentions.push(u[:id_str])}
       )
-      @search_results.push(t) if tweet_valid?(t)
+      
+      if tweet_valid?(t)
+        @search_results.push(t) 
+      else
+        t.destroy
+      end
+
     end
   end
 
@@ -66,7 +72,7 @@ class Twitterbot
   def five_sos_mentioned?(tweet)
     five_sos_ids = ["264107729", "403245020", "403246803", "403255314", "439125710"]
 
-    tweet.mentioned_ids.any? {|id| five_sos_ids.index(id)}
+    tweet.mentioned_ids.any? {|id| five_sos_ids.index(id[:id_str])}
   end
 
   def retweet_tweet(tweet)
