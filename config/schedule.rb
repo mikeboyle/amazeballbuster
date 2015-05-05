@@ -21,6 +21,10 @@
 
 set :environment, 'development'
 
+every 2.minutes do
+  rake "amazeballbuster:respond_to_tweets"
+end
+
 every 5.minutes do
   rake "amazeballbuster:bust"
 end

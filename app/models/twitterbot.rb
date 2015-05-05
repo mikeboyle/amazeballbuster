@@ -10,6 +10,7 @@ class Twitterbot
       config.access_token_secret = ENV['ABALL_ACCESS_TOKEN_SECRET']
     end
     @search_term = options[:search_term]
+    @name = options[:name]
     @search_results = []
 
   end
@@ -54,18 +55,40 @@ class Twitterbot
     end
   end
 
+  def respond_to_tweets
+    responses = [
+      "Duly noted!",
+      "I haven't been programmed to respond to that",
+      "You just said that to a robot",
+      "¯\\_(ツ)_/¯",
+      "As a robot, I have no life",
+      "Something to ponder...",
+      "I hear ya",
+      "Let me try to compute that...",
+      "Say anything you want to me, just not THAT word",
+      "That would touch my heart if I had one"
+    ]
+    tweets_to_me.each do |tweet|
+      begin
+        client.update("@#{tweet.user.screen_name} #{responses.sample}", :in_reply_to_status_id => tweet.id)
+      rescue => exception
+        puts exception
+      end
+      puts "responded to #{tweet.user.screen_name}"
+    end
+  end
+
+  def tweets_to_me
+    client.search("to:#{@name} OR @#{@name} -rt",
+      result_type: "recent",
+      since_id: since_id)
+    .take(100)
+  end
+
   def retweet_tweet(tweet)
     begin
       client.retweet!(tweet.tweet_id)
       puts tweet.text
-    rescue => exception
-      puts exception
-    end
-  end
-
-  def update(text)
-    begin
-      client.update(text)
     rescue => exception
       puts exception
     end
@@ -112,7 +135,7 @@ class Twitterbot
 
   def tweet_valid?(tweet)
     search_term_in_text?(tweet) &&
-      !( five_sos_mentioned?(tweet) ) &&
+      !( teen_idols_mentioned?(tweet) ) &&
       tweet.save
   end
 
@@ -121,11 +144,11 @@ class Twitterbot
     return true if tweet.text.match(/\b#{@search_term}\b/i)
   end
 
-  def five_sos_mentioned?(tweet)
-    # because 5sos fans like to send 100s or even 1000s of tweets in a row that call the band members 'amazeballs'
-    five_sos_ids = ["264107729", "403245020", "403246803", "403255314", "439125710"]
+  def teen_idols_mentioned?(tweet)
+    # because kids like to send 100s or even 1000s of tweets in a row that call their idols 'amazeballs' and this pollutes the timeline
+    teen_idol_ids = ["264107729", "403245020", "403246803", "403255314", "439125710", "310072711"]
 
-    tweet.mentioned_ids.any? {|id| five_sos_ids.index(id[:id_str])}
+    tweet.mentioned_ids.any? {|id| teen_idol_ids.index(id[:id_str])}
   end
 
   def followers

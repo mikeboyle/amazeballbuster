@@ -14,4 +14,9 @@ namespace :amazeballbuster do
     Twitterbot.new.manage_followers
   end
 
+  desc "Respond to replies"
+  task respond_to_tweets: :environment do
+    Twitterbot.new(name: "amazeballbuster").respond_to_tweets
+  end
+
 end
