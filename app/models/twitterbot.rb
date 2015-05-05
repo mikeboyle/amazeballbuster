@@ -17,7 +17,7 @@ class Twitterbot
   def search_and_retweet
     
     find_tweets
-
+    
     if @search_results.any?
       @search_results.reverse.each {|t| retweet_tweet(t)}
     else
@@ -64,21 +64,28 @@ class Twitterbot
   end
 
   def update(text)
-    client.update(text)
+    begin
+      client.update(text)
+    rescue => exception
+      puts exception
+    end
   end
 
   def manage_followers
-    follow_followers
     unfollow_unfollowers
+    follow_followers
   end
 
   def follow_followers
-    # followers.each {|f| follow(f)}
     fans = followers
     friends = following.to_a
     fans.each do |user|
       unless friends.index(user)
-        follow(user)
+        begin
+          follow(user)
+        rescue => exception
+          puts exception
+        end
         puts "followed #{user}"
       end
     end
@@ -89,7 +96,11 @@ class Twitterbot
     fans = followers.to_a
     friends.each do |user|
       unless fans.index(user)
-        unfollow(user) 
+        begin
+          unfollow(user) 
+        rescue => exception
+          puts exception
+        end  
         puts "unfollwed #{user}"
       end
     end
