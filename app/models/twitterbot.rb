@@ -1,6 +1,6 @@
 class Twitterbot
 
-  attr_reader :client, :search_term, :search_results
+  attr_reader :client, :search_term, :search_results, :replies
 
   def initialize(options = {})
     @client = Twitter::REST::Client.new do |config|
@@ -12,6 +12,7 @@ class Twitterbot
     @search_term = options[:search_term]
     @name = options[:name]
     @search_results = []
+    @replies = []
   end
 
   def search_and_retweet
@@ -29,7 +30,7 @@ class Twitterbot
     client.search("#{@search_term} -rt", 
       lang: "en", 
       result_type: "recent",
-      since_id: since_id)
+      since_id: tweet_since_id)
     .take(100)
     .each do |tweet|
       h = tweet.to_hash
@@ -52,22 +53,45 @@ class Twitterbot
   end
 
   def tweets_to_me
+    replies = []
     client.search("to:#{@name} OR @#{@name} -rt",
       result_type: "recent",
-      since_id: since_id)
+      since_id: reply_since_id)
     .take(100)
+    .each do |reply|
+      h = reply.to_hash
+      r = Reply.new(
+        text: reply.text,
+        tweet_id: h[:id_str],
+        user_id: h[:user][:id_str],
+        user: h[:user][:name],
+        screen_name: h[:user][:screen_name]
+        )
+      Pry.start(binding)
+      if r.save && !(r.responded_to)
+        @replies.push(r)
+      else
+        r.destroy
+      end
+    end
   end
 
   def respond_to_tweets
-    tweets_to_me.each do |tweet|
-      begin
-        client.update("@#{tweet.user.screen_name} #{responses.sample}", :in_reply_to_status_id => tweet.id)
-      rescue => exception
-        puts exception
+    tweets_to_me
+
+    if @replies.any?
+      @replies.each do |reply|
+        begin
+          client.update("@#{reply.screen_name} #{responses.sample}", :in_reply_to_status_id => reply.tweet_id)
+        rescue => exception
+          puts exception
+        end
+        reply.responded_to = true
+        reply.save
+        puts "responded to #{reply.screen_name}"
       end
-      puts "responded to #{tweet.user.screen_name}"
-    end
-    puts "no tweets to respond to" if tweets_to_me.to_a.empty?
+    end  
+    puts "no tweets to respond to" if @replies.empty?
   end
 
   def responses
@@ -83,7 +107,11 @@ class Twitterbot
       "Say anything you want to me, just not THAT word.",
       "That would touch my heart if I had one.",
       "You're still a good person. You just said a word a robot didn't like.",
-      "Why are you talking to a robot? Are you that lonely?"
+      "Why are you talking to a robot? Are you that lonely?",
+      "I'd say I was sorry, but I'm just a bot.",
+      "Beep bloop bleep don't say am***balls",
+      "Hmm, tell me more about that!",
+      "Really? Why is that?"
     ]
   end
 
@@ -131,8 +159,20 @@ class Twitterbot
     end
   end
 
-  def since_id
-    Tweet.all.order(tweet_id: :desc).first.tweet_id.to_i
+  def tweet_since_id
+    if Tweet.any?
+      Tweet.all.order(tweet_id: :desc).first.tweet_id.to_i
+    else
+      return 0
+    end
+  end
+
+  def reply_since_id
+    if Reply.any?
+      Reply.all.order(tweet_id: :desc).first.tweet_id.to_i
+    else
+      return 0
+    end
   end
 
   def tweet_valid?(tweet)
