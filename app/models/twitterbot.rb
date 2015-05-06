@@ -12,11 +12,9 @@ class Twitterbot
     @search_term = options[:search_term]
     @name = options[:name]
     @search_results = []
-
   end
 
   def search_and_retweet
-    
     find_tweets
     
     if @search_results.any?
@@ -25,7 +23,6 @@ class Twitterbot
       puts "no tweets found"
       return false
     end
-
   end
 
   def find_tweets
@@ -51,30 +48,6 @@ class Twitterbot
       else
         t.destroy
       end
-
-    end
-  end
-
-  def respond_to_tweets
-    responses = [
-      "Duly noted!",
-      "I haven't been programmed to respond to that",
-      "You just said that to a robot",
-      "¯\\_(ツ)_/¯",
-      "As a robot, I have no life",
-      "Something to ponder...",
-      "I hear ya",
-      "Let me try to compute that...",
-      "Say anything you want to me, just not THAT word",
-      "That would touch my heart if I had one"
-    ]
-    tweets_to_me.each do |tweet|
-      begin
-        client.update("@#{tweet.user.screen_name} #{responses.sample}", :in_reply_to_status_id => tweet.id)
-      rescue => exception
-        puts exception
-      end
-      puts "responded to #{tweet.user.screen_name}"
     end
   end
 
@@ -83,6 +56,35 @@ class Twitterbot
       result_type: "recent",
       since_id: since_id)
     .take(100)
+  end
+
+  def respond_to_tweets
+    tweets_to_me.each do |tweet|
+      begin
+        client.update("@#{tweet.user.screen_name} #{responses.sample}", :in_reply_to_status_id => tweet.id)
+      rescue => exception
+        puts exception
+      end
+      puts "responded to #{tweet.user.screen_name}"
+    end
+    puts "no tweets to respond to" if tweets_to_me.to_a.empty?
+  end
+
+  def responses
+    return [ 
+      "Duly noted!",
+      "I haven't been programmed to respond to that.",
+      "You just said that to a robot.",
+      "¯\\_(ツ)_/¯",
+      "I'd get a life, but I can't because I'm a robot.",
+      "Something to ponder...",
+      "I hear ya!",
+      "Let me try to compute that...",
+      "Say anything you want to me, just not THAT word.",
+      "That would touch my heart if I had one.",
+      "You're still a good person. You just said a word a robot didn't like.",
+      "Why are you talking to a robot? Are you that lonely?"
+    ]
   end
 
   def retweet_tweet(tweet)
