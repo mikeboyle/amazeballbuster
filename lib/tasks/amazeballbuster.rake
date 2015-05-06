@@ -6,7 +6,9 @@ namespace :amazeballbuster do
 
   desc "Removes the oldest tweets from db"
   task clean_up_db: :environment do
-    DbJanitor.new.clean_up_db
+    dbj = DbJanitor.new
+    dbj.clean_up_db(Tweet.all)
+    dbj.clean_up_db(Reply.all)
   end
 
   desc "Manage followers"
