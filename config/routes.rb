@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  
+  root to: 'replies#home'
   resources :replies
 
   # The priority is based upon order of creation: first created -> highest priority.
