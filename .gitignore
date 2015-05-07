@@ -11,3 +11,7 @@
 /log/*
 !/log/.keep
 /tmp
+
+# Files with changes on production server
+database.yml
+schedule.rb

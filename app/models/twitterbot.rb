@@ -67,7 +67,7 @@ class Twitterbot
         user: h[:user][:name],
         screen_name: h[:user][:screen_name]
         )
-      if r.save && !(r.responded_to)
+      if r.save && !(r.responded_to) && (r.user_id != "2620177980")
         @replies.push(r)
       else
         r.destroy
