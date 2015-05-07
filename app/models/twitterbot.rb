@@ -67,7 +67,6 @@ class Twitterbot
         user: h[:user][:name],
         screen_name: h[:user][:screen_name]
         )
-      Pry.start(binding)
       if r.save && !(r.responded_to)
         @replies.push(r)
       else
