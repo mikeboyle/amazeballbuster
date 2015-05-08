@@ -193,11 +193,27 @@ class Twitterbot
   end
 
   def followers
-    client.follower_ids
+    begin
+      client.follower_ids
+    rescue => error
+      puts error
+    rescue Twitter::Error => twe
+      puts twe
+    rescue Timeout::Error => te
+      puts te
+    end
   end
 
   def following
-    client.friend_ids
+    begin
+      client.friend_ids
+    rescue => error
+      puts error
+    rescue Twitter::Error => twe
+      puts twe
+    rescue Timeout::Error => te
+      puts te
+    end
   end
 
   def follow(user)
