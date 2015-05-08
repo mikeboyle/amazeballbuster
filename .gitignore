@@ -15,3 +15,4 @@
 # Files with changes on production server
 database.yml
 schedule.rb
+secrets.yml
