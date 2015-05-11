@@ -29,7 +29,6 @@ class Replybot < Twitterbot
 
   # other methods called within the interface
   def tweets_to_me
-    # replies = []
     client.search("to:#{@name} OR @#{@name} -rt",
       result_type: "recent",
       since_id: reply_since_id)
