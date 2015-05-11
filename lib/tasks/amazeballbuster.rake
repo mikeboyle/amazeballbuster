@@ -1,7 +1,7 @@
 namespace :amazeballbuster do
   desc "Retweets anyone who tweets amazeballs"
   task bust: :environment do
-    Twitterbot.new(search_term: "amazeballs").search_and_retweet
+    Retweetbot.new(search_term: "amazeballs").search_and_retweet
   end
 
   desc "Removes the oldest tweets from db"
@@ -13,12 +13,12 @@ namespace :amazeballbuster do
 
   desc "Manage followers"
   task manage_followers: :environment do
-    Twitterbot.new.manage_followers
+    Followbot.new.manage_followers
   end
 
   desc "Respond to replies"
   task respond_to_tweets: :environment do
-    Twitterbot.new(name: "amazeballbuster").respond_to_tweets
+    Replybot.new(name: "amazeballbuster").respond_to_tweets
   end
 
 end
