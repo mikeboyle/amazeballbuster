@@ -31,7 +31,7 @@ class Replybot < Twitterbot
   def tweets_to_me
     client.search("to:#{@name} OR @#{@name} -rt",
       result_type: "recent",
-      since_id: reply_since_id)
+      since_id: 597940639305699328)
     .take(100)
     .each do |reply|
       h = reply.to_hash
@@ -42,10 +42,11 @@ class Replybot < Twitterbot
         user: h[:user][:name],
         screen_name: h[:user][:screen_name]
         )
-      if r.save &&
-        !(r.responded_to) && 
-        (r.user_id != "2620177980") # don't respond to bot's own tweets
-          @replies.push(r)
+      
+      check_ignore_request(r)
+
+      if reply_valid?(r)
+        @replies.push(r)
       else
         r.destroy
       end
@@ -58,6 +59,40 @@ class Replybot < Twitterbot
     else
       return 0
     end
+  end
+
+  def check_ignore_request(reply)
+    ignore_requests = [
+      'ignore me',
+      'go away',
+      'leave me alone',
+    ]
+    ignored = false
+
+    ignore_requests.each do |phrase|
+      if reply.text.match(/\b#{phrase}\b/i)
+        IgnoredUser.create(
+          user_id: reply.user_id
+          )
+        ignored = true
+      end
+    end
+
+    if ignored
+      begin
+        client.update("@#{reply.screen_name} OK, I won't retweet or reply to you again. Sorry about that", :in_reply_to_status_id => reply.tweet_id)
+      rescue => exception
+        puts exception
+      end
+    end
+
+  end
+
+  def reply_valid?(reply)
+    !(reply.responded_to) &&
+    !(IgnoredUser.find_by(user_id: reply.user_id)) &&
+    reply.user_id != "2620177980" &&
+    reply.save
   end
 
   def responses
