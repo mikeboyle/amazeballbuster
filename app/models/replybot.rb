@@ -31,7 +31,7 @@ class Replybot < Twitterbot
   def tweets_to_me
     client.search("to:#{@name} OR @#{@name} -rt",
       result_type: "recent",
-      since_id: 597940639305699328)
+      since_id: reply_since_id)
     .take(100)
     .each do |reply|
       h = reply.to_hash

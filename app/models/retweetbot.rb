@@ -27,7 +27,7 @@ class Retweetbot < Twitterbot
     client.search("#{@search_term} -rt", 
       lang: "en", 
       result_type: "recent",
-      since_id: 597971123905507328)
+      since_id: tweet_since_id)
     .take(100)
     .each do |tweet|
       h = tweet.to_hash
