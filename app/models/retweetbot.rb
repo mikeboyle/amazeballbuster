@@ -27,7 +27,7 @@ class Retweetbot < Twitterbot
     client.search("#{@search_term} -rt", 
       lang: "en", 
       result_type: "recent",
-      since_id: tweet_since_id)
+      since_id: 597971123905507328)
     .take(100)
     .each do |tweet|
       h = tweet.to_hash
@@ -60,6 +60,7 @@ class Retweetbot < Twitterbot
   def tweet_valid?(tweet)
     search_term_in_text?(tweet) &&
       !( teen_idols_mentioned?(tweet) ) &&
+      !( IgnoredUser.find_by(user_id: tweet.user_id)) &&
       tweet.save
   end
 
