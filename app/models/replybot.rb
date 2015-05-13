@@ -14,8 +14,9 @@ class Replybot < Twitterbot
 
     if @replies.any?
       @replies.each do |reply|
+        response_text = make_response_text(reply)
         begin
-          client.update("@#{reply.screen_name} #{responses.sample}", :in_reply_to_status_id => reply.tweet_id)
+          client.update("@#{reply.screen_name} #{response_text}", :in_reply_to_status_id => reply.tweet_id)
         rescue => exception
           puts exception
         end
@@ -42,8 +43,7 @@ class Replybot < Twitterbot
         user: h[:user][:name],
         screen_name: h[:user][:screen_name]
         )
-      
-      check_ignore_request(r)
+      # check_ignore_request(r)
 
       if reply_valid?(r)
         @replies.push(r)
@@ -61,35 +61,61 @@ class Replybot < Twitterbot
     end
   end
 
-  def check_ignore_request(reply)
+  def make_response_text(reply)
+
+    if ignore_request?(reply)
+      IgnoredUser.create(
+        user_id: reply.user_id
+        )
+      return "OK, I won't retweet or reply to you again. Sorry about that."
+    else
+      return responses.sample
+    end
+  end
+
+  def ignore_request?(reply)
     ignore_requests = [
       'ignore me',
       'go away',
       'leave me alone',
     ]
-    ignored = false
-
     ignore_requests.each do |phrase|
       if reply.text.match(/\b#{phrase}\b/i)
-        IgnoredUser.create(
-          user_id: reply.user_id
-          )
-        ignored = true
+        return true
       end
     end
-
-    if ignored
-      begin
-        client.update("@#{reply.screen_name} OK, I won't retweet or reply to you again. Sorry about that.", :in_reply_to_status_id => reply.tweet_id)
-      rescue => exception
-        puts exception
-      end
-      reply.responded_to = true
-      reply.save
-      puts "sent ignore message to #{reply.screen_name}"
-    end
-
+    return false
   end
+
+  # def check_ignore_request(reply)
+  #   ignore_requests = [
+  #     'ignore me',
+  #     'go away',
+  #     'leave me alone',
+  #   ]
+  #   ignored = false
+
+  #   ignore_requests.each do |phrase|
+  #     if reply.text.match(/\b#{phrase}\b/i)
+  #       IgnoredUser.create(
+  #         user_id: reply.user_id
+  #         )
+  #       ignored = true
+  #     end
+  #   end
+
+  #   if ignored
+  #     begin
+  #       client.update("@#{reply.screen_name} OK, I won't retweet or reply to you again. Sorry about that.", :in_reply_to_status_id => reply.tweet_id)
+  #     rescue => exception
+  #       puts exception
+  #     end
+  #     reply.responded_to = true
+  #     reply.save
+  #     puts "sent ignore message to #{reply.screen_name}"
+  #   end
+
+  # end
 
   def reply_valid?(reply)
     !(reply.responded_to) &&
