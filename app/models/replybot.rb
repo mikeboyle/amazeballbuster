@@ -80,10 +80,13 @@ class Replybot < Twitterbot
 
     if ignored
       begin
-        client.update("@#{reply.screen_name} OK, I won't retweet or reply to you again. Sorry about that", :in_reply_to_status_id => reply.tweet_id)
+        client.update("@#{reply.screen_name} OK, I won't retweet or reply to you again. Sorry about that.", :in_reply_to_status_id => reply.tweet_id)
       rescue => exception
         puts exception
       end
+      reply.responded_to = true
+      reply.save
+      puts "sent ignore message to #{reply.screen_name}"
     end
 
   end
